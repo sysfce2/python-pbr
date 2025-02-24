@@ -69,6 +69,7 @@ class SemanticVersion(object):
         if self._prerelease_type and not self._prerelease:
             self._prerelease = 0
         self._dev_count = dev_count or 0  # Normalise 0 to None.
+        self._local_version = None
 
     def __eq__(self, other):
         if not isinstance(other, SemanticVersion):
@@ -164,9 +165,10 @@ class SemanticVersion(object):
     def _from_pip_string_unsafe(klass, version_string):
         # Versions need to start numerically, ignore if not
         version_string = version_string.lstrip('vV')
+        main_version, _, local_version = version_string.partition("+")
         if not version_string[:1].isdigit():
             raise ValueError("Invalid version %r" % version_string)
-        input_components = version_string.split('.')
+        input_components = main_version.split('.')
         # decimals first (keep pre-release and dev/hashes to the right)
         components = [c for c in input_components if c.isdigit()]
         digit_len = len(components)
@@ -251,6 +253,7 @@ class SemanticVersion(object):
             prerelease=prerelease,
             dev_count=dev_count,
         )
+        result._local_version = local_version if local_version else None
         if post_count:
             if dev_count:
                 raise ValueError(
@@ -378,7 +381,10 @@ class SemanticVersion(object):
                 segments.append('.')
             segments.append('dev')
             segments.append(self._dev_count)
-        return "".join(str(s) for s in segments)
+        local_version = (
+            "+%s" % self._local_version if self._local_version else ""
+        )
+        return "".join(str(s) for s in segments) + local_version
 
     def release_string(self):
         """Return the full version of the package.

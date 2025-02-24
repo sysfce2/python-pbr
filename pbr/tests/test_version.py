@@ -316,6 +316,46 @@ class TestSemanticVersion(base.BaseTestCase):
         self.assertEqual("1.2.3.rc1", semver.rpm_string())
         self.assertEqual(semver, from_pip_string("1.2.4.0rc1"))
 
+    def test_local_version(self):
+        semver = from_pip_string('1.2.3+localversion')
+        self.assertEqual('localversion', semver._local_version)
+        self.assertEqual((1, 2, 3, 'final', 0), semver.version_tuple())
+        self.assertEqual("1.2.3", semver.brief_string())
+        self.assertEqual("1.2.3+localversion", semver.debian_string())
+        self.assertEqual("1.2.3+localversion", semver.release_string())
+        self.assertEqual("1.2.3+localversion", semver.rpm_string())
+        self.assertEqual(semver, from_pip_string("1.2.3+localversion"))
+
+    def test_local_version_with_dev(self):
+        semver = from_pip_string('1.2.4.dev5+localversion')
+        self.assertEqual('localversion', semver._local_version)
+        self.assertEqual((1, 2, 4, 'dev', 4), semver.version_tuple())
+        self.assertEqual("1.2.4", semver.brief_string())
+        self.assertEqual("1.2.4~dev5+localversion", semver.debian_string())
+        self.assertEqual("1.2.4.dev5+localversion", semver.release_string())
+        self.assertEqual("1.2.3.dev5+localversion", semver.rpm_string())
+        self.assertEqual(semver, from_pip_string("1.2.4.dev5+localversion"))
+
+    def test_local_version_with_prerelease(self):
+        semver = from_pip_string('1.2.4.0a1+localversion')
+        self.assertEqual('localversion', semver._local_version)
+        self.assertEqual("1.2.4", semver.brief_string())
+        self.assertEqual("1.2.4~a1+localversion", semver.debian_string())
+        self.assertEqual("1.2.4.0a1+localversion", semver.release_string())
+        self.assertEqual("1.2.3.a1+localversion", semver.rpm_string())
+        self.assertEqual(semver, from_pip_string("1.2.4.0a1+localversion"))
+
+    def test_local_version_roundtrip(self):
+        # A parsed local version should reparse from its own rendered form.
+        semver = from_pip_string('1.2.3+localversion')
+        self.assertEqual(semver, from_pip_string(semver.release_string()))
+
+    def test_local_version_differs_from_plain(self):
+        # A version with a local version is not equal to one without.
+        plain = from_pip_string('1.2.3')
+        local = from_pip_string('1.2.3+localversion')
+        self.assertNotEqual(plain, local)
+
     def test_to_dev(self):
         self.assertEqual(
             version.SemanticVersion(1, 2, 3, dev_count=1),
