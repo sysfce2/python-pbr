@@ -767,13 +767,14 @@ def pbr(dist, attr, value):
     """
 
     # Distribution.finalize_options() is what calls this method. That means
-    # there is potential for recursion here. Recursion seems to be an issue
-    # particularly when using PEP517 build-system configs without
-    # setup_requires in setup.py. We can avoid the recursion by setting
-    # this canary so we don't repeat ourselves.
+    # there is potential for recursion here: our call to
+    # super().finalize_options() below re-triggers keyword processing.
+    # We avoid the recursion by setting this canary before calling super().
+    # _pbr_initialized is only set on the setup.cfg path; on the no-setup.cfg
+    # path we return without calling super(), so there is no recursion risk
+    # and the finalize_distribution_options hook can still run.
     if hasattr(dist, '_pbr_initialized'):
         return
-    dist._pbr_initialized = True
 
     if not value:
         return
@@ -783,10 +784,14 @@ def pbr(dist, attr, value):
     else:
         path = os.path.abspath('setup.cfg')
 
-    if not os.path.exists(path):
-        raise errors.DistutilsFileError(
-            'The setup.cfg file %s does not exist.' % path
-        )
+    if not os.path.exists(path) and os.path.exists('pyproject.toml'):
+        # The finalize_distribution_options hook will handle version and
+        # install_requires injection once finalize_options() continues past
+        # keyword processing
+        return
+
+    # Set recursion guard before calling super().finalize_options() below.
+    dist._pbr_initialized = True
 
     # Converts the setup.cfg file to setup() arguments
     try:
