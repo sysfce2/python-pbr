@@ -746,16 +746,6 @@ def split_multiline(value):
     return value
 
 
-def split_csv(value):
-    """Special behaviour when we have a comma separated options"""
-    value = [
-        element
-        for element in (chunk.strip() for chunk in value.split(','))
-        if element
-    ]
-    return value
-
-
 def pbr(dist, attr, value):
     """Implements the pbr setup() keyword.
 
