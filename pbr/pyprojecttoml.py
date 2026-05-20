@@ -68,3 +68,8 @@ def pbr(dist):
         dist.metadata.version = meta['version']
     if 'requires_dist' in meta and 'dependencies' in dynamic:
         dist.install_requires = split_multiline(meta['requires_dist'])
+
+    if 'sdist' not in dist.cmdclass:
+        from pbr._compat.commands import LocalSDist
+
+        dist.cmdclass['sdist'] = LocalSDist
