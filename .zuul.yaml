@@ -106,6 +106,16 @@
     parent: pbr-installation-openstack-pip-dev
     nodeset: ubuntu-noble
 
+- job:
+    name: pbr-installation-openstack-resolute
+    parent: pbr-installation-openstack
+    nodeset: ubuntu-resolute-8GB
+
+- job:
+    name: pbr-installation-openstack-pip-dev-resolute
+    parent: pbr-installation-openstack-pip-dev
+    nodeset: ubuntu-resolute-8GB
+
 - project:
     vars:
       release_python: python3
@@ -132,8 +142,12 @@
         - openstack-tox-py312
         - openstack-tox-py313
         - openstack-tox-py314
+        - openstack-tox-py315:
+            voting: false
         - pbr-installation-openstack-noble
         - pbr-installation-openstack-pip-dev-noble
+        - pbr-installation-openstack-resolute
+        - pbr-installation-openstack-pip-dev-resolute
     gate:
       jobs:
         - openstack-tox-pep8
@@ -155,7 +169,11 @@
         - openstack-tox-py314
         - pbr-installation-openstack-noble
         - pbr-installation-openstack-pip-dev-noble
+        - pbr-installation-openstack-resolute
+        - pbr-installation-openstack-pip-dev-resolute
     periodic:
       jobs:
         - pbr-installation-openstack-noble
         - pbr-installation-openstack-pip-dev-noble
+        - pbr-installation-openstack-resolute
+        - pbr-installation-openstack-pip-dev-resolute
