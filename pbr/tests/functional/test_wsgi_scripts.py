@@ -103,6 +103,9 @@ class TestWsgiScripts(base.BaseTestCase):
             popen_cmd.extend(extra_args)
 
         env = {'PYTHONPATH': self._get_path()}
+        existing = os.environ.get('PYTHONPATH')
+        if existing:
+            env['PYTHONPATH'] = self._get_path() + ':' + existing
 
         p = subprocess.Popen(
             popen_cmd,
