@@ -97,16 +97,6 @@
       pbr_pip_version: 'git+https://github.com/pypa/pip.git#egg=pip'
 
 - job:
-    name: pbr-installation-openstack-jammy
-    parent: pbr-installation-openstack
-    nodeset: ubuntu-jammy
-
-- job:
-    name: pbr-installation-openstack-pip-dev-jammy
-    parent: pbr-installation-openstack-pip-dev
-    nodeset: ubuntu-jammy
-
-- job:
     name: pbr-installation-openstack-noble
     parent: pbr-installation-openstack
     nodeset: ubuntu-noble
@@ -139,8 +129,6 @@
         - openstack-tox-py311
         - openstack-tox-py312
         - openstack-tox-py313
-        - pbr-installation-openstack-jammy
-        - pbr-installation-openstack-pip-dev-jammy
         - pbr-installation-openstack-noble
         - pbr-installation-openstack-pip-dev-noble
     gate:
@@ -159,13 +147,9 @@
         - openstack-tox-py311
         - openstack-tox-py312
         - openstack-tox-py313
-        - pbr-installation-openstack-jammy
-        - pbr-installation-openstack-pip-dev-jammy
         - pbr-installation-openstack-noble
         - pbr-installation-openstack-pip-dev-noble
     periodic:
       jobs:
-        - pbr-installation-openstack-jammy
-        - pbr-installation-openstack-pip-dev-jammy
         - pbr-installation-openstack-noble
         - pbr-installation-openstack-pip-dev-noble
