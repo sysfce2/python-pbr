@@ -131,6 +131,7 @@
         - openstack-tox-py311
         - openstack-tox-py312
         - openstack-tox-py313
+        - openstack-tox-py314
         - pbr-installation-openstack-noble
         - pbr-installation-openstack-pip-dev-noble
     gate:
@@ -151,6 +152,7 @@
         - openstack-tox-py311
         - openstack-tox-py312
         - openstack-tox-py313
+        - openstack-tox-py314
         - pbr-installation-openstack-noble
         - pbr-installation-openstack-pip-dev-noble
     periodic:
