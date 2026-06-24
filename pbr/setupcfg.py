@@ -563,8 +563,16 @@ def setup_cfg_to_setup_kwargs(config, script_args=None):
                 dist = st_dist.Distribution()
                 for cls_name in in_cfg_value:
                     cls = resolve_name(cls_name)
-                    cmd = cls(dist)
-                    cmdclass[cmd.get_command_name()] = cls
+                    # Try grabbing command_name from the class attribute
+                    # first to avoid the setuptools warning about setup.py
+                    # deprecation. This path isn't actually using setup.py.
+                    # If there are any external commands without command_name
+                    # attributes (naughty) fall back to the original
+                    # behavior.
+                    name = getattr(cls, 'command_name', None)
+                    if name is None:
+                        name = cls(dist).get_command_name()
+                    cmdclass[name] = cls
                 in_cfg_value = cmdclass
 
         kwargs[arg] = in_cfg_value
