@@ -1,3 +1,8 @@
+[project]
+name = "pbr"
+dynamic = ["version", "description", "readme", "license", "authors", "dependencies", "scripts", "classifiers", "urls", "entry-points"]
+requires-python = ">=2.6"
+
 [build-system]
 requires = [
   # Includes pep660 support in setuptools
@@ -12,8 +17,8 @@ requires = [
 build-backend = "pbr.build"
 backend-path = ["."]
 
-[tools.setuptools]
-py-modules=[]
+[tool.setuptools]
+py-modules = []
 
 [tool.black]
 line-length = 79
