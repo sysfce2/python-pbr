@@ -18,11 +18,13 @@ from __future__ import print_function
 
 import io
 import os
+import setuptools
 import tempfile
 import textwrap
 import warnings
 
 from pbr._compat.five import ConfigParser
+from pbr._compat import packaging as packaging_compat
 from pbr import setupcfg
 from pbr.tests import base
 
@@ -149,6 +151,11 @@ class TestBasics(base.BaseTestCase):
             ],
             'include_package_data': True,
         }
+        # Hardcode this exclusion - we only have one for now.
+        if packaging_compat.parse_version(
+            setuptools.__version__
+        ) >= packaging_compat.parse_version('72.0.0'):
+            del expected['tests_require']
         config = config_from_ini(config_text)
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
@@ -177,10 +184,18 @@ class TestBasics(base.BaseTestCase):
             "The '[files] modules' option is deprecated",
             "The '[backwards_compat] zip_safe' option is deprecated",
             "The '[backwards_compat] dependency_links' option is deprecated",
-            "The '[backwards_compat] tests_require' option is deprecated",
             "The '[backwards_compat] include_package_data' option is deprecated",
         ):
             self.assertIn(warning_message, warning_messages)
+
+        # Hardcode this exclusion - we only have one for now.
+        if packaging_compat.parse_version(
+            setuptools.__version__
+        ) >= packaging_compat.parse_version('72.0.0'):
+            self.assertIn(
+                "The '[backwards_compat] tests_require' option is deprecated",
+                warning_messages,
+            )
 
     def test_bug_2120575(self):
         # check behavior with description, long_description (modern)

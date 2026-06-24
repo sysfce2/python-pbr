@@ -245,7 +245,7 @@ MULTI_FIELDS = (
 # a mapping of removed keywords to the version of setuptools that they were deprecated in
 REMOVED_KEYWORDS = {
     # https://setuptools.pypa.io/en/stable/history.html#v72-0-0
-    'tests_requires': '72.0.0',
+    'tests_require': '72.0.0',
 }
 
 # setup() arguments that can have mapping values in setup.cfg
