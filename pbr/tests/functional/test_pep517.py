@@ -102,16 +102,15 @@ class TestPEP517Support(base.BaseTestCase):
         }
         pkg_dirs = self.useFixture(pbr_fixtures.Packages(pkgs)).package_dirs
         pkg_dir = pkg_dirs['test_pep517']
-        venv = self.useFixture(pbr_fixtures.Venv('PEP517'))
-
         # Test building sdists and wheels works. Note we do not use pip here
         # because pip will forcefully install the latest version of PBR on
         # pypi to satisfy the build-system requires. This means we can't self
         # test changes using pip. Build with --no-isolation appears to avoid
         # this problem.
-        self._run_cmd(
-            venv.python,
-            ('-m', 'build', '--no-isolation', '.'),
-            allow_fail=False,
-            cwd=pkg_dir,
-        )
+        with pbr_fixtures.Venv('PEP517') as venv:
+            self._run_cmd(
+                venv.python,
+                ('-m', 'build', '--no-isolation', '.'),
+                allow_fail=False,
+                cwd=pkg_dir,
+            )

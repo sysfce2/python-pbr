@@ -43,6 +43,7 @@ from __future__ import absolute_import
 import os
 import re
 import subprocess
+import tempfile
 import textwrap
 
 import fixtures
@@ -69,11 +70,11 @@ class Chdir(fixtures.Fixture):
         os.chdir(self.path)
 
 
-class CapturedSubprocess(fixtures.Fixture):
+class CapturedSubprocess:
     """Run a process and capture its output.
 
-    :attr stdout: The output (a string). Only set if the process fails.
-    :attr stderr: The standard error (a string). Only set if the process fails.
+    :attr out: The output (a string).
+    :attr err: The standard error (a string).
     :attr returncode: The return code of the process.
 
     Note that stdout and stderr are decoded from the bytestrings subprocess
@@ -84,19 +85,19 @@ class CapturedSubprocess(fixtures.Fixture):
         """Create a CapturedSubprocess.
 
         :param label: A label for the subprocess in the test log. E.g. 'foo'.
+        :param test_case: A testtools.TestCase instance. stdout and stderr are
+            attached as details to the test case so they appear in failure
+            output.
         :param *args: The *args to pass to Popen.
         :param **kwargs: The **kwargs to pass to Popen.
         """
-        super(CapturedSubprocess, self).__init__()
         self.label = label
         self.args = args
+        test_case = kwargs.pop('test_case')
         self.kwargs = kwargs
         self.kwargs['stderr'] = subprocess.PIPE
         self.kwargs['stdin'] = subprocess.PIPE
         self.kwargs['stdout'] = subprocess.PIPE
-
-    def setUp(self):
-        super(CapturedSubprocess, self).setUp()
         # setuptools can be very shouty
         env = os.environ.copy()
         env['PYTHONWARNINGS'] = 'ignore'
@@ -105,17 +106,20 @@ class CapturedSubprocess(fixtures.Fixture):
         out, err = proc.communicate()
         self.out = out.decode('utf-8', 'replace')
         self.err = err.decode('utf-8', 'replace')
-        self.addDetail(self.label + '-stdout', content.text_content(self.out))
-        self.addDetail(self.label + '-stderr', content.text_content(self.err))
         self.returncode = proc.returncode
+        test_case.addDetail(label + '-stdout', content.text_content(self.out))
+        test_case.addDetail(label + '-stderr', content.text_content(self.err))
         if proc.returncode:
             raise AssertionError(
                 'Failed process args=%r, kwargs=%r, returncode=%s'
                 % (self.args, self.kwargs, proc.returncode)
             )
-        self.addCleanup(delattr, self, 'out')
-        self.addCleanup(delattr, self, 'err')
-        self.addCleanup(delattr, self, 'returncode')
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        return False
 
 
 class GitRepo(fixtures.Fixture):
@@ -218,7 +222,7 @@ class GPGKey(fixtures.Fixture):
         assert retcode == 0, 'gpg key generation failed!'
 
 
-class Venv(fixtures.Fixture):
+class Venv:
     """Create a virtual environment for testing with.
 
     :attr path: The path to the environment root.
@@ -226,7 +230,7 @@ class Venv(fixtures.Fixture):
     """
 
     def __init__(self, reason, modules=(), pip_cmd=None):
-        """Create a Venv fixture.
+        """Create a Venv context manager.
 
         :param reason: A human readable string to bake into the venv
             file path to aid diagnostics in the case of failures.
@@ -244,22 +248,44 @@ class Venv(fixtures.Fixture):
         else:
             self.pip_cmd = pip_cmd
 
-    def _setUp(self):
-        path = self.useFixture(fixtures.TempDir()).path
+    def __enter__(self):
+        # NOTE: tempfile.TemporaryDirectory is not available on Python 2.7,
+        # which we still support, so use mkdtemp + util.rmtree instead.
+        self._tmpdir = path = tempfile.mkdtemp()
         virtualenv.cli_run([path])
 
         python = os.path.join(path, 'bin', 'python')
-        command = [python] + self.pip_cmd + ['-U']
-        if self.modules and len(self.modules) > 0:
-            command.extend(self.modules)
-            self.useFixture(
-                CapturedSubprocess('mkvenv-' + self._reason, command)
+        if self.modules:
+            command = [python] + self.pip_cmd + ['-U'] + list(self.modules)
+            env = os.environ.copy()
+            env['PYTHONWARNINGS'] = 'ignore'
+            proc = subprocess.Popen(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                stdin=subprocess.PIPE,
+                env=env,
             )
-        self.addCleanup(delattr, self, 'path')
-        self.addCleanup(delattr, self, 'python')
+            out, err = proc.communicate()
+            if proc.returncode:
+                raise AssertionError(
+                    'Failed process args=%r, returncode=%s\nstdout: %s\nstderr: %s'
+                    % (
+                        command,
+                        proc.returncode,
+                        out.decode('utf-8', 'replace'),
+                        err.decode('utf-8', 'replace'),
+                    )
+                )
         self.path = path
         self.python = python
-        return path, python
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        del self.path
+        del self.python
+        util.rmtree(self._tmpdir)
+        return False
 
 
 class Packages(fixtures.Fixture):
