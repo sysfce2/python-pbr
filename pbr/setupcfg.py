@@ -624,12 +624,20 @@ def setup_cfg_to_setup_kwargs(config, script_args=None):
     for req_group in all_requirements:
         for requirement, env_marker in all_requirements[req_group]:
             if env_marker:
-                extras_key = '%s:(%s)' % (req_group, env_marker)
-                # We do not want to poison wheel creation with locally
-                # evaluated markers.  sdists always re-create the egg_info
-                # and as such do not need guarded, and pip will never call
-                # multiple setup.py commands at once.
-                if 'bdist_wheel' not in script_args:
+                if 'bdist_wheel' in script_args:
+                    # For wheel builds, use PEP 508 inline markers.
+                    # The legacy extras_require key format
+                    # (e.g. ':(marker)') is no longer supported by
+                    # setuptools >= 83 and results in silently dropped
+                    # dependencies.
+                    extras_key = req_group
+                    requirement = '%s; %s' % (requirement, env_marker)
+                else:
+                    # For non-wheel builds (sdist, direct install),
+                    # evaluate markers locally. sdists always re-create
+                    # the egg_info at install time and pip will never
+                    # call multiple setup.py commands at once.
+                    extras_key = '%s:(%s)' % (req_group, env_marker)
                     try:
                         if packaging_compat.evaluate_marker(
                             '(%s)' % env_marker

@@ -41,6 +41,7 @@
 import os
 import textwrap
 
+import packaging.markers
 import packaging.requirements
 
 from pbr._compat.five import string_type
@@ -95,6 +96,24 @@ def split_sections(s):
 
 
 class TestRequirementParsing(base.BaseTestCase):
+
+    @staticmethod
+    def _normalize_section_key(key):
+        """Normalize a requires.txt section key for comparison.
+
+        setuptools normalizes markers when writing requires.txt from
+        PEP 508 inline markers. This helper strips differences like
+        parentheses, quoting style, and whitespace so we can compare
+        keys regardless of setuptools version.
+        """
+        if key is None:
+            return key
+        if ':' in key:
+            name, marker = key.split(':', 1)
+            marker = marker.strip().strip('()')
+            marker = str(packaging.markers.Marker(marker))
+            return '%s:%s' % (name, marker) if name else ':%s' % marker
+        return key
 
     def test_requirement_parsing(self):
         pkgs = {
@@ -152,11 +171,20 @@ class TestRequirementParsing(base.BaseTestCase):
             with open(requires_txt, 'rt') as requires:
                 generated_requirements = dict(split_sections(requires))
 
+            # Normalize section keys: setuptools may normalize markers
+            # differently depending on how they are passed (legacy
+            # extras_require key vs PEP 508 inline).
+            normalized_generated = {
+                self._normalize_section_key(k): v
+                for k, v in generated_requirements.items()
+            }
+
             # NOTE(dhellmann): We have to spell out the comparison because
             # the rendering for version specifiers in a range is not
             # consistent across versions of setuptools.
 
             for section, expected in expected_requirements.items():
+                norm_section = self._normalize_section_key(section)
                 # We wrap in str since we need packaging 22.0.0 or later to do
                 # comparisons [1] and that doesn't support Python 2.7, 3.6
                 #
@@ -168,6 +196,6 @@ class TestRequirementParsing(base.BaseTestCase):
                 ]
                 gen_parsed = [
                     str(packaging.requirements.Requirement(s))
-                    for s in generated_requirements[section]
+                    for s in normalized_generated[norm_section]
                 ]
                 self.assertEqual(exp_parsed, gen_parsed)
