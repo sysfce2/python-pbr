@@ -2,8 +2,8 @@
  Usage
 =======
 
-*pbr* is a *setuptools* plugin and so to use it you must use *setuptools* and
-call ``setuptools.setup()``. While the normal *setuptools* facilities are
+*pbr* is a *setuptools* plugin and so to use it you must use *setuptools*.
+While the normal *setuptools* facilities are
 available, *pbr* makes it possible to express them through static data files.
 
 .. _setup_py:
@@ -11,10 +11,8 @@ available, *pbr* makes it possible to express them through static data files.
 ``setup.py``
 ------------
 
-*pbr* only requires a minimal ``setup.py`` file compared to a standard
-*setuptools* project. This is because most configuration is located in static
-configuration files. This recommended minimal ``setup.py`` file should look
-something like this:
+If not using a ``pyproject.toml`` file, *pbr* requires a minimal ``setup.py``
+file, like:
 
 .. code-block:: python
 
@@ -37,8 +35,10 @@ something like this:
    any conflicting arguments supplied in ``pyproject.toml`` or ``setup.cfg``
    will take precedence.
 
-Once configured, you can place your configuration into either
-``pyproject.toml`` or ``setup.cfg``.
+Once added, you can place your configuration into either ``pyproject.toml`` or
+``setup.cfg``, though a ``setup.py`` file is not required if a new enough
+``pbr`` is included in the ``build-system.requires`` of your ``pyproject.toml``
+file.
 
 ``pyproject.toml``
 ------------------
@@ -52,26 +52,10 @@ look like this:
 .. code-block:: toml
 
     [build-system]
-    requires = ["pbr>=6.1.1"]
+    requires = ["pbr>=7.1.0"]
     build-backend = "pbr.build"
 
-Eventually PBR may grow its own direct support for PEP517 build hooks, but
-until then it will continue to need setuptools with a minimal ``setup.py`` and
-``setup.cfg`` as follows. First, ``setup.py``:
-
-.. code-block:: python
-
-    import setuptools
-    setuptools.setup(pbr=True)
-
-Then ``setup.cfg``:
-
-.. code-block:: ini
-
-    [metadata]
-    name = my_project
-
-Almost all other metadata can be placed into ``pyproject.toml``. A simple example:
+All metadata can be placed into ``pyproject.toml``. A simple example:
 
 .. code-block:: toml
 

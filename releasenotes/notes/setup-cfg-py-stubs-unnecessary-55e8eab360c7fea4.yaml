@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    Stub ``setup.cfg`` and ``setup.py`` files are no longer required in order
+    to set package metadata in a ``pyproject.toml`` file.
