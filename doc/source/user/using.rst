@@ -3,42 +3,8 @@
 =======
 
 *pbr* is a *setuptools* plugin and so to use it you must use *setuptools*.
-While the normal *setuptools* facilities are
-available, *pbr* makes it possible to express them through static data files.
-
-.. _setup_py:
-
-``setup.py``
-------------
-
-If not using a ``pyproject.toml`` file, *pbr* requires a minimal ``setup.py``
-file, like:
-
-.. code-block:: python
-
-    #!/usr/bin/env python
-
-    from setuptools import setup
-
-    setup(
-        setup_requires=['pbr'],
-        pbr=True,
-    )
-
-.. note::
-
-   It is necessary to specify ``pbr=True`` to enabled *pbr* functionality.
-
-.. note::
-
-   While one can pass any arguments supported by setuptools to ``setup()``,
-   any conflicting arguments supplied in ``pyproject.toml`` or ``setup.cfg``
-   will take precedence.
-
-Once added, you can place your configuration into either ``pyproject.toml`` or
-``setup.cfg``, though a ``setup.py`` file is not required if a new enough
-``pbr`` is included in the ``build-system.requires`` of your ``pyproject.toml``
-file.
+While the normal *setuptools* facilities are available, *pbr* makes it possible
+to express them through static data files.
 
 ``pyproject.toml``
 ------------------
@@ -96,6 +62,40 @@ All metadata can be placed into ``pyproject.toml``. A simple example:
 
     [tool.setuptools]
     packages = ["my_project"]
+
+.. _setup_py:
+
+``setup.py``
+------------
+
+If not using a ``pyproject.toml`` file, *pbr* requires a minimal ``setup.py``
+file, like:
+
+.. code-block:: python
+
+    #!/usr/bin/env python
+
+    from setuptools import setup
+
+    setup(
+        setup_requires=['pbr'],
+        pbr=True,
+    )
+
+.. note::
+
+   It is necessary to specify ``pbr=True`` to enabled *pbr* functionality.
+
+.. note::
+
+   While one can pass any arguments supported by setuptools to ``setup()``,
+   any conflicting arguments supplied in ``pyproject.toml`` or ``setup.cfg``
+   will take precedence.
+
+Once added, you can place your configuration into either ``pyproject.toml`` or
+``setup.cfg``, though a ``setup.py`` file is not required if a new enough
+``pbr`` is included in the ``build-system.requires`` of your ``pyproject.toml``
+file.
 
 .. _setup_cfg:
 
