@@ -41,3 +41,7 @@ def pbr(dist):
     from pbr import pyprojecttoml
 
     pyprojecttoml.pbr(dist)
+
+
+# Ensure this hook runs after setuptools' built-in 'keywords' hook
+pbr.order = 1
